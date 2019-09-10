@@ -1,6 +1,9 @@
 # Import Built-Ins
 import logging
-import json
+try:
+    import ujson as json
+except:
+    import json
 import time
 import ssl
 import hashlib
@@ -174,7 +177,7 @@ class WebSocketConnection(Thread):
         self.log.debug("run(): Starting up..")
         self._connect()
 
-    def _on_message(self, ws, message):
+    def _on_message(self, message):
         """Handles and passes received data to the appropriate handlers.
 
         :return:
@@ -204,7 +207,7 @@ class WebSocketConnection(Thread):
         # We've received data, reset timers
         self._start_timers()
 
-    def _on_close(self, ws, *args):
+    def _on_close(self, *args):
 
         self.connected.clear()
         self._stop_timers()
@@ -217,7 +220,7 @@ class WebSocketConnection(Thread):
         else:
             self.log.info("Connection is closed normally.")
 
-    def _on_open(self, ws):
+    def _on_open(self):
         self.log.info("Connection opened")
         self.connected.set()
         self.send_ping()
@@ -226,7 +229,7 @@ class WebSocketConnection(Thread):
             self.log.info("_on_open(): Connection reconnected, re-subscribing..")
             self._resubscribe(soft=False)
 
-    def _on_error(self, ws, error):
+    def _on_error(self, error):
         self.log.info("Connection Error - %s", error)
         self.reconnect_required.set()
         self.connected.clear()
